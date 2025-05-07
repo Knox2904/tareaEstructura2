@@ -5,14 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
+typedef struct 
+{
   char id[100];
-  char title[100];
+  char artistas[100];
+  char album[100];
+  char nombre[100];
+  float tempo;
   List *genres;
-  char director[300];
-  float rating;
-  int year;
-} Film;
+   
+} song;
 
 // Menú principal
 void mostrarMenuPrincipal() {
@@ -56,109 +58,92 @@ int is_equal_int(void *key1, void *key2) {
 }
 
 /**
- * Carga películas desde un archivo CSV y las almacena en un mapa por ID.
+ * Carga canciones desde un archivo CSV y las almacena en un mapa por ID.
  */
-void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres) {
-  // Intenta abrir el archivo CSV que contiene datos de películas
-  FILE *archivo = fopen("data/song_dataset_.csv", "r");
-  if (archivo == NULL) {
+void cargar_canciones(Map *canciones_id, Map *canciones_genero) 
+{
+  // Nombre del archivo CSV, que es song_dataset_.csv, que contiene los datos de las canciones, se hace const char para no cambie
+  const char *datos = "data/song_dataset_.csv";
+  FILE *archivo = fopen("datos", "r");
+  if (archivo == NULL) 
+  {
     perror(
         "Error al abrir el archivo"); // Informa si el archivo no puede abrirse
     return;
   }
 
-  char **campos;
-  // Leer y parsear una línea del archivo CSV. La función devuelve un array de
-  // strings, donde cada elemento representa un campo de la línea CSV procesada.
-  campos = leer_linea_csv(archivo, ','); // Lee los encabezados del CSV
+  //ahora hacemos una variable para leer y almacenar los datos leidos de cada linea del archivo.
 
-  // Lee cada línea del archivo CSV hasta el final
-  while ((campos = leer_linea_csv(archivo, ',')) != NULL) {
-    // Crea una nueva estructura Film y almacena los datos de cada película
-    Film *peli = (Film *)malloc(sizeof(Film));
-    strcpy(peli->id, campos[1]);        // Asigna ID
-    strcpy(peli->title, campos[5]);     // Asigna título
-    strcpy(peli->director, campos[14]); // Asigna director
-    peli->genres = split_string(campos[11], ",");       // Inicializa la lista de géneros
-    peli->year =
-        atoi(campos[10]); // Asigna año, convirtiendo de cadena a entero
+  char ** campos;
 
-    
-    // Inserta la película en el mapa usando el ID como clave
-    map_insert(pelis_byid, peli->id, peli);
+  campos = leer_linea_csv(archivo, ',');
 
-    // Código generado con ayuda de chatgpt3.5
-    // conversación: https://chat.openai.com/share/5f0643ad-e8f5-4fb7-a0fa-2d2f92408429
-    
-    // Obtiene el primer género de la lista de géneros de la película
-    char *genre = list_first(peli->genres);
-    // Itera sobre cada género de la película
-    while (genre != NULL) {
-        // Busca el género en el mapa pelis_bygenres
-        MapPair *genre_pair = map_search(pelis_bygenres, genre);
+  //ahora recorremos el archivo a traves de campos y le damos valores a las variables
 
-        // Si el género no existe en el mapa, crea una nueva lista y agrégala al mapa
-        if (genre_pair == NULL) {
-            List *new_list = list_create();
-            list_pushBack(new_list, peli);
-            map_insert(pelis_bygenres, genre, new_list);
-        } else {
-            // Si el género ya existe en el mapa, obtén la lista y agrega la película
-            List *genre_list = (List *)genre_pair->value;
-            list_pushBack(genre_list, peli);
-        }
+  while ((campos = leer_linea_csv(archivo, ',')) != NULL)
+  {
+    song * cancion = (song*)malloc(sizeof(song)); // guardamos memoria para el struct de cancion.
+    strcpy(cancion -> id , campos[0] ); // se asigna el id 
+    strcpy(cancion ->artistas , campos[1]); // se asigna el nombre del artista o artistas
+    strcpy(cancion -> album , campos[2]);// se asigna el nombre del album
+    strcpy(cancion -> nombre , campos[3]); // se asigna el nombre de la cancion
+    cancion->tempo = atof(campos[4]); // se cambia de cadena a float para guardar el tempo
+    cancion->genres = split_string(campos[5], ","); // aqui se inicializa la lista de los generos de las canciones.
 
-        // Avanza al siguiente género en la lista
-        genre = list_next(peli->genres);
+    //se inserta la canción en el mapa usando el ID como clave
+    map_insert(canciones_id, cancion->id, cancion);
+
+    // procesamos cada genero de la cancion
+    char *genre = list_first(cancion->genres);
+    while (genre != NULL) 
+    {
+      //se  busca si el genero ya esta en el mapa, para que no haya duplicados.
+      MapPair *genre_pair = map_search(canciones_genero, genre);
+
+      // si el genero no existe en el mapa, se crea una nueva lista y se agrega al mapa
+      if (genre_pair == NULL) 
+      {
+        List *new_list = list_create();
+        list_pushBack(new_list, cancion);
+        map_insert(canciones_genero, genre, new_list);
+      } 
+      else 
+      {
+        // si el genero ya existe en el mapa, se obtiene   la cancion
+        List *genre_list = (List *)genre_pair->value;
+        list_pushBack(genre_list, cancion);
+      }
+
+      // una vez ya terminado todo, se avanza al siguiente género en la lista
+      genre = list_next(cancion->genres);
     }
-    
   }
   fclose(archivo); // Cierra el archivo después de leer todas las líneas
 
-
-  // Itera sobre el mapa para mostrar las películas cargadas
-  MapPair *pair = map_first(pelis_byid);
-  while (pair != NULL) {
-    Film *peli = pair->value;
-    printf("ID: %s, Título: %s, Director: %s, Año: %d\n", peli->id, peli->title,
-           peli->director, peli->year);
+  // Itera sobre el mapa para mostrar las canciones cargadas
+  MapPair *pair = map_first(canciones_id);
+  while (pair != NULL) 
+  { 
+    song *cancion = pair->value;
+    printf("ID: %s, Artistas: %s, Álbum: %s, Canción: %s, Tempo: %.2f\n",
+           cancion->id, cancion->artistas, cancion->album, cancion->nombre, cancion->tempo);
 
     printf("Géneros: ");
-    for(char *genre = list_first(peli->genres); genre != NULL; genre = list_next(peli->genres))
+    for (char *genre = list_first(cancion->genres); genre != NULL; genre = list_next(cancion->genres))
       printf("%s, ", genre);
     printf("\n");
-    
-    pair = map_next(pelis_byid); // Avanza al siguiente par en el mapa
+
+    pair = map_next(canciones_id); // Avanza al siguiente par en el mapa
   }
+
 }
 
-/**
- * Busca y muestra la información de una película por su ID en un mapa.
- */
-void buscar_por_id(Map *pelis_byid) {
-  char id[10]; // Buffer para almacenar el ID de la película
 
-  // Solicita al usuario el ID de la película
-  printf("Ingrese el id de la película: ");
-  scanf("%s", id); // Lee el ID del teclado
 
-  // Busca el par clave-valor en el mapa usando el ID proporcionado
-  MapPair *pair = map_search(pelis_byid, id);
 
-  // Si se encontró el par clave-valor, se extrae y muestra la información de la
-  // película
-  if (pair != NULL) {
-    Film *peli =
-        pair->value; // Obtiene el puntero a la estructura de la película
-    // Muestra el título y el año de la película
-    printf("Título: %s, Año: %d\n", peli->title, peli->year);
-  } else {
-    // Si no se encuentra la película, informa al usuario
-    printf("La película con id %s no existe\n", id);
-  }
-}
+  
 
-void buscar_por_genero(Map *pelis_bygenres) {
+/*void buscar_por_genero(Map *pelis_bygenres) {
   char genero[100];
 
   // Solicita al usuario el ID de la película
@@ -178,15 +163,15 @@ void buscar_por_genero(Map *pelis_bygenres) {
       }
   }
 }
-
+*/
 int main() {
   char opcion; // Variable para almacenar una opción ingresada por el usuario
                // (sin uso en este fragmento)
 
   // Crea un mapa para almacenar películas, utilizando una función de
   // comparación que trabaja con claves de tipo string.
-  Map *pelis_byid = map_create(is_equal_str);
-  Map *pelis_bygenres = map_create(is_equal_str);
+  Map *canciones_id = map_create(is_equal_str);
+  Map *canciones_genero = map_create(is_equal_str);
 
   // Recuerda usar un mapa por criterio de búsqueda
 
@@ -197,15 +182,15 @@ int main() {
 
     switch (opcion) {
     case '1':
-      cargar_peliculas(pelis_byid, pelis_bygenres);
+      cargar_peliculas(canciones_id, canciones_genero);
       break;
     case '2':
-      buscar_por_id(pelis_byid);
+      buscar_por_id(canciones_id);
       break;
     case '3':
       break;
     case '4':
-      buscar_por_genero(pelis_bygenres);
+      buscar_por_genero(canciones_genero);
       break;
     case '5':
       break;
