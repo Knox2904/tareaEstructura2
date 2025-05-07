@@ -60,7 +60,7 @@ int is_equal_int(void *key1, void *key2) {
  */
 void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres) {
   // Intenta abrir el archivo CSV que contiene datos de películas
-  FILE *archivo = fopen("data/Top1500.csv", "r");
+  FILE *archivo = fopen("data/song_dataset_.csv", "r");
   if (archivo == NULL) {
     perror(
         "Error al abrir el archivo"); // Informa si el archivo no puede abrirse
