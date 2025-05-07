@@ -22,8 +22,8 @@ void mostrarMenuPrincipal() {
   puts("========================================");
 
   puts("1) Cargar Canciones");
-  puts("2) Buscar por id");
-  puts("3) Buscar por aaaa");
+  puts("2) Buscar por genero");
+  puts("3) Buscar por director");
   puts("4) Buscar por género");
   puts("5) Buscar por década");
   puts("6) Buscar por rango de calificaciones");
