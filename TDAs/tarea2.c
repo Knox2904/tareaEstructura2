@@ -21,7 +21,7 @@ void mostrarMenuPrincipal() {
   puts("     Base de Datos de Canciones");
   puts("========================================");
 
-  puts("1) Cargar Películas");
+  puts("1) Cargar Canciones");
   puts("2) Buscar por id");
   puts("3) Buscar por director");
   puts("4) Buscar por género");
