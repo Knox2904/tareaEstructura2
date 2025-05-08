@@ -12,7 +12,7 @@ ve el nuevo archivo porfa , puedes borrar este mensaje cuando lo hagas
 
 typedef struct 
 {
-  char id[100];
+  int id;
   char artistas[100];
   char album[100];
   char nombreCancion[100];
@@ -71,8 +71,8 @@ int is_equal_float(void *key1, void *key2) {
   return fabs(val1 - val2) < epsilon;  // Si la diferencia es menor que epsilon, se consideran iguales
 }
 
-/**
- * Carga canciones desde un archivo CSV y las almacena en un mapa por ID.
+/*
+  Carga canciones desde un archivo CSV y las almacena en un mapa por ID.
  */
 void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancionesTempo) 
 {
@@ -94,12 +94,12 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
   while ((campos = leer_linea_csv(archivo, ',')) != NULL)
   {
     song * cancion = (song*)malloc(sizeof(song)); // Guardamos memoria para el struct de canción.
-    strcpy(cancion->id, campos[0]); // Se asigna el id
-    strcpy(cancion->artistas, campos[1]); // Se asigna el nombre del artista o artistas
-    strcpy(cancion->album, campos[2]); // Se asigna el nombre del álbum
-    strcpy(cancion->nombreCancion, campos[3]); // Se asigna el nombre de la canción
-    cancion->tempo = atof(campos[4]); // Se cambia de cadena a float para guardar el tempo
-    cancion->genres = split_string(campos[5], ","); // Aquí se inicializa la lista de los géneros de las canciones.
+    cancion->id = atoi(campos[0]); // Se asigna el id
+    strcpy(cancion->artistas, campos[2]); // Se asigna el nombre del artista o artistas
+    strcpy(cancion->album, campos[3]); // Se asigna el nombre del álbum
+    strcpy(cancion->nombreCancion, campos[4]); // Se asigna el nombre de la canción
+    cancion->tempo = atof(campos[18]); // Se guarda el tempo
+    cancion->genres = split_string(campos[20], ","); // Aquí se inicializa la lista de los géneros de las canciones.
 
     // --- MAPA: Géneros ---
     // Procesamos cada género de la canción
