@@ -1,3 +1,14 @@
+/*
+miniLog
+8/5 Gabriel , se creo un ejecutable .sh para poder correr el programa mas facil , se limpio el menu para que ahora muestre lo que corresponde 
+se modifico la funcion de lectura del csv para poder soportar un tercer mapa , se cambio los nombres de los mapas para que correspondan a los campor requeridos , artista , bpm  ,genero
+se creo la funcion buscar por genero (terminada , sin testear ).
+
+
+*/
+
+
+
 #include "tdas/extra.h"
 #include "tdas/list.h"
 #include "tdas/map.h"
@@ -25,11 +36,11 @@ void mostrarMenuPrincipal() {
 
   puts("1) Cargar Canciones");
   puts("2) Buscar por genero");
-  puts("3) Buscar por director");
-  puts("4) Buscar por género");
-  puts("5) Buscar por década");
-  puts("6) Buscar por rango de calificaciones");
-  puts("7) Buscar por década y género");
+  puts("3) Buscar por artista");
+  puts("4) Buscar por tempo"); // lentas t<80 : moderadas 80<=t<=120 : rapidas 120>t
+  puts("5) Crear lista de Reproducion");
+  puts("6) Agregar Cancion a la lista");
+  puts("7) Mostrar canciones de la lista");
   puts("8) Salir");
 }
 
@@ -60,88 +71,103 @@ int is_equal_int(void *key1, void *key2) {
 /**
  * Carga canciones desde un archivo CSV y las almacena en un mapa por ID.
  */
-void cargar_canciones(Map *canciones_id, Map *canciones_genero) 
+void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancionesTempo) 
 {
   // Nombre del archivo CSV, que es song_dataset_.csv, que contiene los datos de las canciones, se hace const char para no cambie
   const char *datos = "data/song_dataset_.csv";
-  FILE *archivo = fopen("datos", "r");
+  FILE *archivo = fopen(datos, "r");
   if (archivo == NULL) 
   {
-    perror(
-        "Error al abrir el archivo"); // Informa si el archivo no puede abrirse
+    perror("Error al abrir el archivo"); // Informa si el archivo no puede abrirse
     return;
   }
 
-  //ahora hacemos una variable para leer y almacenar los datos leidos de cada linea del archivo.
-
+  // Ahora hacemos una variable para leer y almacenar los datos leidos de cada linea del archivo.
   char ** campos;
 
-  campos = leer_linea_csv(archivo, ',');
+  campos = leer_linea_csv(archivo, ','); // Salta encabezado
 
-  //ahora recorremos el archivo a traves de campos y le damos valores a las variables
-
+  // Recorremos el archivo a traves de campos y le damos valores a las variables
   while ((campos = leer_linea_csv(archivo, ',')) != NULL)
   {
-    song * cancion = (song*)malloc(sizeof(song)); // guardamos memoria para el struct de cancion.
-    strcpy(cancion -> id , campos[0] ); // se asigna el id 
-    strcpy(cancion ->artistas , campos[1]); // se asigna el nombre del artista o artistas
-    strcpy(cancion -> album , campos[2]);// se asigna el nombre del album
-    strcpy(cancion -> nombre , campos[3]); // se asigna el nombre de la cancion
-    cancion->tempo = atof(campos[4]); // se cambia de cadena a float para guardar el tempo
-    cancion->genres = split_string(campos[5], ","); // aqui se inicializa la lista de los generos de las canciones.
+    song * cancion = (song*)malloc(sizeof(song)); // Guardamos memoria para el struct de canción.
+    strcpy(cancion->id, campos[0]); // Se asigna el id
+    strcpy(cancion->artistas, campos[1]); // Se asigna el nombre del artista o artistas
+    strcpy(cancion->album, campos[2]); // Se asigna el nombre del álbum
+    strcpy(cancion->nombre, campos[3]); // Se asigna el nombre de la canción
+    cancion->tempo = atof(campos[4]); // Se cambia de cadena a float para guardar el tempo
+    cancion->genres = split_string(campos[5], ","); // Aquí se inicializa la lista de los géneros de las canciones.
 
-    //se inserta la canción en el mapa usando el ID como clave
-    map_insert(canciones_id, cancion->id, cancion);
-
-    // procesamos cada genero de la cancion
+    // --- MAPA: Géneros ---
+    // Procesamos cada género de la canción
     char *genre = list_first(cancion->genres);
     while (genre != NULL) 
     {
-      //se  busca si el genero ya esta en el mapa, para que no haya duplicados.
-      MapPair *genre_pair = map_search(canciones_genero, genre);
+      // Se busca si el género ya está en el mapa, para que no haya duplicados.
+      MapPair *genre_pair = map_search(cancionesGenero, genre);
 
-      // si el genero no existe en el mapa, se crea una nueva lista y se agrega al mapa
+      // Si el género no existe en el mapa, se crea una nueva lista y se agrega al mapa
       if (genre_pair == NULL) 
       {
         List *new_list = list_create();
         list_pushBack(new_list, cancion);
-        map_insert(canciones_genero, genre, new_list);
+        map_insert(cancionesGenero, genre, new_list);
       } 
       else 
       {
-        // si el genero ya existe en el mapa, se obtiene   la cancion
+        // Si el género ya existe en el mapa, se obtiene la lista y se agrega la canción
         List *genre_list = (List *)genre_pair->value;
         list_pushBack(genre_list, cancion);
       }
 
-      // una vez ya terminado todo, se avanza al siguiente género en la lista
+      // Avanzamos al siguiente género en la lista
       genre = list_next(cancion->genres);
     }
+
+    // --- MAPA: Artistas ---
+    // Procesamos cada artista de la canción
+    MapPair *artista_pair = map_search(cancionesArtista, cancion->artistas);
+    if (artista_pair == NULL) 
+    {
+      List *new_list = list_create();
+      list_pushBack(new_list, cancion);
+      map_insert(cancionesArtista, cancion->artistas, new_list);
+    } 
+    else 
+    {
+      List *artista_list = (List *)artista_pair->value;
+      list_pushBack(artista_list, cancion);
+    }
+
+    // --- MAPA: Tempo (en rangos) ---
+    // Clasificamos la canción según el rango de tempo
+    char tempo_rango[20];
+
+    // Rango de tempo según lo indicado
+    if (cancion->tempo < 80) 
+      sprintf(tempo_rango, "Lentas");
+    else if (cancion->tempo <= 120) 
+      sprintf(tempo_rango, "Moderadas");
+    else 
+      sprintf(tempo_rango, "Rápidas");
+
+    // Se busca si ya existe el rango de tempo en el mapa
+    MapPair *tempo_pair = map_search(cancionesTempo, tempo_rango);
+    if (tempo_pair == NULL) 
+    {
+      List *new_list = list_create();
+      list_pushBack(new_list, cancion);
+      map_insert(cancionesTempo, strdup(tempo_rango), new_list);  // strdup para evitar punteros colapsados
+    } 
+    else 
+    {
+      List *tempo_list = (List *)tempo_pair->value;
+      list_pushBack(tempo_list, cancion);
+    }
   }
+
   fclose(archivo); // Cierra el archivo después de leer todas las líneas
-
-  // Itera sobre el mapa para mostrar las canciones cargadas
-  MapPair *pair = map_first(canciones_id);
-  while (pair != NULL) 
-  { 
-    song *cancion = pair->value;
-    printf("ID: %s, Artistas: %s, Álbum: %s, Canción: %s, Tempo: %.2f\n",
-           cancion->id, cancion->artistas, cancion->album, cancion->nombre, cancion->tempo);
-
-    printf("Géneros: ");
-    for (char *genre = list_first(cancion->genres); genre != NULL; genre = list_next(cancion->genres))
-      printf("%s, ", genre);
-    printf("\n");
-
-    pair = map_next(canciones_id); // Avanza al siguiente par en el mapa
-  }
-
 }
-
-
-
-
-  
 
 /*void buscar_por_genero(Map *pelis_bygenres) {
   char genero[100];
@@ -170,8 +196,9 @@ int main() {
 
   // Crea un mapa para almacenar películas, utilizando una función de
   // comparación que trabaja con claves de tipo string.
-  Map *canciones_id = map_create(is_equal_str);
-  Map *canciones_genero = map_create(is_equal_str);
+  Map *cancionesGenero = map_create(is_equal_str);
+  Map *cancionesArtista = map_create(is_equal_str);
+  Map *cancionesTempo = map_create(is_equal_int) ; 
 
   // Recuerda usar un mapa por criterio de búsqueda
 
@@ -182,21 +209,25 @@ int main() {
 
     switch (opcion) {
     case '1':
-      cargar_peliculas(canciones_id, canciones_genero);
+      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel)
       break;
     case '2':
-      buscar_por_id(canciones_id);
+      //buscarPorGenero(cancionesGenero); // pendiente 
       break;
     case '3':
+      //buscaPorArtista(cancionesArtista); // pendiente
       break;
     case '4':
-      buscar_por_genero(canciones_genero);
+      //buscarPorTempo(cancionesTempo) ; // pendiente 
       break;
     case '5':
+      //crearListaReproducion() ;  // pendiente
       break;
     case '6':
+      //AgreagarCancionLista() ; // pendiente 
       break;
     case '7':
+      //MostarCancionesLista() ; // pendiente 
       break;
     }
     presioneTeclaParaContinuar();
