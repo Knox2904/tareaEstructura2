@@ -2,12 +2,18 @@ cree un pequeño log donde voy a poner mis cambios , si quieres puedes poner los
 despues hay que pasarlo al readme de github y borrar este  archivo 
 o puedes hcer tus cambios y preguntarle a una IA que te ayuda a ponerlo mas bonito y ordenado lo que quiereas 
 
-si quieres uasar el test2.sh que cree tienes que ver que la ruta esta bien , usa cd "/c/Users/Gabriel/Desktop/programacion/C/tarea 2 conjunto/tareaEstructura2/TDAs" en mi caso 
+si quieres usar el test2.sh que cree tienes que ver que la ruta esta bien , usa cd "/c/Users/Gabriel/Desktop/programacion/C/tarea 2 conjunto/tareaEstructura2/TDAs" en mi caso 
 
-
+Recordatorio: el archivo se lee de arriba para abajo, ya que el orden de cambios van del más antiguo al más nuevo.
+#---------------------------------------------------
+Fecha: 7/5 
+Autor: Felipe
+Cambios realizados:
+- Añadir el archivo de lectura csv.
+- Crear la funcion para leer el archivo, funcion cargar_canciones.
+- Cambios en el main sobre el nombre de algunas variables.
 
 #---------------------------------------------------
-
 Fecha: 8/5
 Autor: Gabriel
 Cambios realizados:
@@ -18,4 +24,3 @@ Cambios realizados:
 - Creación de la función de búsqueda por género (terminada, sin testear).
 
 #---------------------------------------------------
-
