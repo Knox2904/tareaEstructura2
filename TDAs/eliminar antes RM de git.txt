@@ -2,6 +2,10 @@ cree un pequeño log donde voy a poner mis cambios , si quieres puedes poner los
 despues hay que pasarlo al readme de github y borrar este  archivo 
 o puedes hcer tus cambios y preguntarle a una IA que te ayuda a ponerlo mas bonito y ordenado lo que quiereas 
 
+si quieres uasar el test2.sh que cree tienes que ver que la ruta esta bien , usa cd "/c/Users/Gabriel/Desktop/programacion/C/tarea 2 conjunto/tareaEstructura2/TDAs" en mi caso 
+
+
+
 #---------------------------------------------------
 
 Fecha: 8/5

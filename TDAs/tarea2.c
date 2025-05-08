@@ -173,12 +173,12 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
 }
 
 void buscarPorGenero( Map* cancionesGenero){
-  if(cancionesGenero == NULL){
-    printf("el mapa esta vacio , favor revisar la lectura del .csv \n") ; 
+  if(cancionesGenero == NULL || map_first(cancionesGenero) == NULL){
+    printf("el mapa esta vacio o no se inicio bien , favor revisar la lectura del .csv \n") ; 
     return;
   }
 
-  pritnf("ingrese el genero que se desea buscar (sin espacios) \n") ; 
+  printf("ingrese el genero que se desea buscar (sin espacios) \n") ; 
   char generoUsuario[100] ; 
   scanf("%99s" , generoUsuario) ; 
 
@@ -229,7 +229,7 @@ int main() {
 
   do {
     mostrarMenuPrincipal();
-    printf("Ingrese su opción: ");
+    printf("Ingrese su opcion: ");
     scanf(" %c", &opcion);
 
     switch (opcion) {
@@ -237,7 +237,7 @@ int main() {
       cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel)
       break;
     case '2':
-      buscarPorGenero(cancionesGenero); // pendiente 
+      buscarPorGenero(cancionesGenero); // terminado (Gabriel) ->sin testear<-
       break;
     case '3':
       //buscaPorArtista(cancionesArtista); // pendiente
