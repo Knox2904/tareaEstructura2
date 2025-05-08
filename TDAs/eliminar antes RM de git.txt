@@ -1,0 +1,17 @@
+cree un pequeño log donde voy a poner mis cambios , si quieres puedes poner los tuyos tambien , solo copia y pega el formato 
+despues hay que pasarlo al readme de github y borrar este  archivo 
+o puedes hcer tus cambios y preguntarle a una IA que te ayuda a ponerlo mas bonito y ordenado lo que quiereas 
+
+#---------------------------------------------------
+
+Fecha: 8/5
+Autor: Gabriel
+Cambios realizados:
+- Creación de un ejecutable .sh para facilitar la ejecución.
+- Limpieza del menú para mostrar la información correcta.
+- Modificación de la función de lectura del CSV para soportar un tercer mapa (por tempo).
+- Cambio de los nombres de los mapas para que correspondan a los campos requeridos: Artista, BPM (Tempo), Género.
+- Creación de la función de búsqueda por género (terminada, sin testear).
+
+#---------------------------------------------------
+
