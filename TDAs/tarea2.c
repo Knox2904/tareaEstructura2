@@ -13,9 +13,9 @@ ve el nuevo archivo porfa , puedes borrar este mensaje cuando lo hagas
 typedef struct 
 {
   int id;
-  char artistas[100];
-  char album[100];
-  char nombreCancion[100];
+  char *artistas;
+  char *album;
+  char *nombreCancion;
   float tempo;
   List *genres;
    
@@ -74,7 +74,8 @@ int is_equal_float(void *key1, void *key2) {
 /*
   Carga canciones desde un archivo CSV y las almacena en un mapa por ID.
  */
-void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancionesTempo) 
+/*
+void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancionesTempo , Map* cancionesID) 
 {
   // Nombre del archivo CSV, que es song_dataset_.csv, que contiene los datos de las canciones, se hace const char para no cambie
   const char *datos = "data/song_dataset_.csv";
@@ -169,10 +170,111 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
       List *tempo_list = (List *)tempo_pair->value;
       list_pushBack(tempo_list, cancion);
     }
+
+    
+    // --- MAPA: ID ---
+    MapPair *MapID = map_search(cancionesID, &cancion->id);
+    if (MapID == NULL) {
+        List *NewIDList = list_create();
+        list_pushBack(NewIDList, cancion);
+        map_insert(cancionesID, &cancion->id, NewIDList);
+    } else {
+        List *IDlist = (List *)MapID->value;
+        list_pushBack(IDlist, cancion);
+    }
+
   }
 
   fclose(archivo); // Cierra el archivo después de leer todas las líneas
 }
+
+*/
+
+//revamp
+void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancionesTempo, Map *cancionesID) {
+    const char *datos = "data/song_dataset_.csv";
+    FILE *archivo = fopen(datos, "r");
+    if (archivo == NULL) {
+        perror("Error al abrir el archivo");
+        return;
+    }
+    printf("Archivo abierto correctamente\n");
+
+    char **campos;
+    campos = leer_linea_csv(archivo, ','); // Saltamos el encabezado
+
+    int contador = 0; // Para contar cuántas canciones se han procesado
+    while ((campos = leer_linea_csv(archivo, ',')) != NULL) {
+        contador++;
+        printf("Procesando cancion #%d | ID: %s\n", contador, campos[0]);
+
+        song *cancion = (song*)malloc(sizeof(song));
+        if (cancion == NULL) {
+            printf("Error al reservar memoria para la cancion\n");
+            continue;
+        }
+
+        cancion->id = atoi(campos[0]); 
+        cancion->artistas = strdup(campos[2]); 
+        cancion->album = strdup(campos[3]); 
+        cancion->nombreCancion = strdup(campos[4]); 
+        cancion->tempo = atof(campos[18]); 
+        cancion->genres = split_string(campos[20], ",");
+
+        
+
+        // --- MAPA: Géneros ---
+        char *genre = list_first(cancion->genres);
+        MapPair *genre_pair = map_search(cancionesGenero, genre);
+        List *genre_list = (genre_pair != NULL) ? (List*)genre_pair->value : NULL;
+
+        if (genre_list == NULL) {
+            genre_list = list_create();
+            map_insert(cancionesGenero, genre, genre_list);
+        }
+        list_pushBack(genre_list, cancion);
+
+        // --- MAPA: Artistas ---
+        MapPair *artista_pair = map_search(cancionesArtista, cancion->artistas);
+        List *artista_list = (artista_pair != NULL) ? (List*)artista_pair->value : NULL;
+
+        if (artista_list == NULL) {
+            artista_list = list_create();
+            map_insert(cancionesArtista, cancion->artistas, artista_list);
+        }
+        list_pushBack(artista_list, cancion);
+
+        // --- MAPA: Tempo ---
+        //Asignamos el rango de tempo
+        char *tempo_rango;
+        if (cancion->tempo < 80) 
+            tempo_rango = "Lentas";
+        else if (cancion->tempo <= 120) 
+            tempo_rango = "Moderadas";
+        else 
+            tempo_rango = "Rápidas";
+
+
+
+        MapPair *tempo_pair = map_search(cancionesTempo, tempo_rango);
+        List *tempo_list = (tempo_pair != NULL) ? (List*)tempo_pair->value : NULL;
+
+        if (tempo_list == NULL) {
+            tempo_list = list_create();
+            map_insert(cancionesTempo, tempo_rango, tempo_list);
+        }
+        list_pushBack(tempo_list, cancion);
+
+        // --- MAPA: ID ---
+        map_insert(cancionesID, &cancion->id, cancion);
+    }
+
+    printf("Se han procesado un total de %d canciones.\n", contador);
+    fclose(archivo);
+}
+
+
+
 
 void buscarPorGenero( Map* cancionesGenero){
   if(cancionesGenero == NULL || map_first(cancionesGenero) == NULL){
@@ -211,23 +313,19 @@ void buscarPorGenero( Map* cancionesGenero){
     parActual = map_next(cancionesGenero) ; 
   }
   if(!bandera){
-    printf("no se encontraron canciones con el genro dado \n") ; 
+    printf("no se encontraron canciones con el genero dado \n") ; 
   }
 }
 
 void crearListaReproducion(Map* mapaListasReproducion){
   List* aux = list_create() ; 
-  if(aux == NULL) exit(EXIT_FAILURE) ; 
+  if(aux == NULL) { printf("\033[1;31mFATAL ERROR SE CREO MAL LA LISTA \033[0m\n"); exit(EXIT_FAILURE) ; }
 
-  printf("ingrese el nombre de la Lista(50 char Max) : \n") ; 
+  printf("ingrese el nombre de la Lista(50 char Max) : \n") ;
   char nombre[51] ; 
-  scanf("%50[^\n]s" , nombre) ; 
-  
-  
-  if (map_search(mapaListasReproducion , nombre) == NULL){
-    printf("nombre en uso , intente de nuevo \n") ; 
-    printf("ingrese el nombre de la Lista(50 char Max) : \n") ; 
-    char nombre[51] ; 
+  scanf(" %50[^\n]s" , nombre) ; 
+
+  if (map_search(mapaListasReproducion , nombre) != NULL){
     printf("\033[1;31mFATAL ERROR NOMBRE EN USO \033[0m\n");
     return;
   }
@@ -236,6 +334,48 @@ void crearListaReproducion(Map* mapaListasReproducion){
   printf("se creo la lista exitosamente \n") ; 
   
 }
+
+void AgreagarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
+  if (mapaListasReproducion == NULL || map_first(mapaListasReproducion) == NULL) {
+    printf("El mapa esta vacio o no se inicializo bien. Favor revisar la creacion del mapa.\n");
+    return;
+  }
+
+  char nombreLista[51];
+  int id;
+
+  printf("Ingrese el nombre de la lista en la que desea ingresar (50 char max):\n");
+  scanf(" %50[^\n]s", nombreLista);
+
+  printf("Ingrese el ID de la canción:\n");
+  scanf("%d", &id);
+
+  MapPair *lista_pair = map_search(mapaListasReproducion, nombreLista);
+  if (lista_pair == NULL) {
+      printf("\033[1;31mFATAL ERROR: La lista no existe.\033[0m\n");
+     return;
+  }
+  Map *cancionesListasCreadas = (Map *)lista_pair->value;
+
+
+  if (map_search(cancionesListasCreadas, &id) != NULL) {
+    printf("\033[1;31mFATAL ERROR: La canción ya está en la lista.\033[0m\n");
+    return;
+  }
+
+  song* cancion = (song*) map_search(cancionesID, &id);
+  if (cancion == NULL) {
+    printf("\033[1;31mFATAL ERROR: La canción no existe.\033[0m\n");
+    return;
+  }
+
+  int* key = malloc(sizeof(int));
+  *key = id;
+  map_insert(cancionesListasCreadas, key, cancion);
+
+  printf("Se insertó correctamente.\n");
+}
+
 
 
 
@@ -248,14 +388,14 @@ void buscarPorTempo(Map *cancionesTempo)
 {
   if (cancionesTempo == NULL || map_first(cancionesTempo) == NULL) 
   {
-    printf("El mapa está vacío o no se inicio correctamente. Por favor, revisar la carga del archivo CSV.\n");
+    printf("El mapa esta vacio o no se inicio correctamente. Por favor, revisar la carga del archivo CSV.\n");
     return;
   }
 
   printf("Seleccione el rango de tempo para buscar canciones:\n");
   printf("1. Lentas (Tempo < 80 BPM)\n");
   printf("2. Moderadas (80 <= Tempo <= 120 BPM)\n");
-  printf("3. Rápidas (Tempo > 120 BPM)\n");
+  printf("3. Rapidas (Tempo > 120 BPM)\n");
   printf("Ingrese su opción (1-3): ");
 
   int opcion;
@@ -312,10 +452,11 @@ int main() {
 
   // Crea un mapa para almacenar películas, utilizando una función de
   // comparación que trabaja con claves de tipo string.
+  Map *cancionesID = map_create(is_equal_str) ; 
   Map *cancionesGenero = map_create(is_equal_str);
   Map *cancionesArtista = map_create(is_equal_str);
   Map *cancionesTempo = map_create(is_equal_float) ;
-  Map* mapaListasReproducion = map_create(is_equal_str) ; 
+  Map *mapaListasReproducion = map_create(is_equal_str) ; 
 
   // Recuerda usar un mapa por criterio de búsqueda
 
@@ -327,7 +468,7 @@ int main() {
     switch (opcion) {
     case '1':
       printf("Cargando canciones...\n");
-      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel) // testeado funciona 
+      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo , cancionesID); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa y cuarto(Gabriel) // testeado funciona 
       printf("Canciones cargadas correctamente.\n");
       break;
     case '2':
@@ -340,10 +481,10 @@ int main() {
       buscarPorTempo(cancionesTempo) ; // terminado(Felipe) ->sin testear<- // testeado funciona 
       break;
     case '5':
-      crearListaReproducion(mapaListasReproducion) ;  // terminado (Gabriel) ->sin testear<-
+      crearListaReproducion(mapaListasReproducion) ;  // terminado (Gabriel) // testeado funciona 
       break;
     case '6':
-      //AgreagarCancionLista() ; // pendiente 
+      AgreagarCancionLista(mapaListasReproducion , cancionesID) ; // terminado (Gabriel) ->sin testear<- 
       break;
     case '7':
       //MostarCancionesLista() ; // pendiente 

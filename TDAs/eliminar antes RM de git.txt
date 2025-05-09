@@ -2,7 +2,7 @@ cree un pequeño log donde voy a poner mis cambios , si quieres puedes poner los
 despues hay que pasarlo al readme de github y borrar este  archivo 
 o puedes hacer tus cambios y preguntarle a una IA que te ayuda a ponerlo mas bonito y ordenado lo que quiereas 
 
-si quieres usar el test2.sh que cree tienes que ver que la ruta esta bien , usa cd "/c/Users/Gabriel/Desktop/programacion/C/tarea 2 conjunto/tareaEstructura2/TDAs" en mi caso 
+si quieres usar el test2.sh que cree tienes que ver que la ruta esta bien , usa cd "/c/Users/Gabriel/Desktop/programacion/C/tarea2L/tareaEstructura2/TDAs" en mi caso 
 
 Recordatorio: el archivo se lee de arriba para abajo, ya que el orden de cambios van del más antiguo al más nuevo.
 #---------------------------------------------------
