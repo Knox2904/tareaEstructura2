@@ -215,6 +215,28 @@ void buscarPorGenero( Map* cancionesGenero){
   }
 }
 
+void crearListaReproducion(Map* mapaListasReproducion){
+  List* aux = list_create() ; 
+  if(aux == NULL) exit(EXIT_FAILURE) ; 
+
+  printf("ingrese el nombre de la Lista(50 char Max) : \n") ; 
+  char nombre[51] ; 
+  scanf("%50[^\n]s" , nombre) ; 
+  
+  
+  if (map_search(mapaListasReproducion , nombre) == NULL){
+    printf("nombre en uso , intente de nuevo \n") ; 
+    printf("ingrese el nombre de la Lista(50 char Max) : \n") ; 
+    char nombre[51] ; 
+    printf("\033[1;31mFATAL ERROR NOMBRE EN USO \033[0m\n");
+    return;
+  }
+
+  map_insert(mapaListasReproducion ,strdup(nombre) ,aux) ; 
+  printf("se creo la lista exitosamente \n") ; 
+  
+}
+
 
 
 /*
@@ -292,7 +314,8 @@ int main() {
   // comparación que trabaja con claves de tipo string.
   Map *cancionesGenero = map_create(is_equal_str);
   Map *cancionesArtista = map_create(is_equal_str);
-  Map *cancionesTempo = map_create(is_equal_float) ; 
+  Map *cancionesTempo = map_create(is_equal_float) ;
+  Map* mapaListasReproducion = map_create(is_equal_str) ; 
 
   // Recuerda usar un mapa por criterio de búsqueda
 
@@ -304,20 +327,20 @@ int main() {
     switch (opcion) {
     case '1':
       printf("Cargando canciones...\n");
-      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel)
+      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel) // testeado funciona 
       printf("Canciones cargadas correctamente.\n");
       break;
     case '2':
-      buscarPorGenero(cancionesGenero); // terminado (Gabriel) ->sin testear<-
+      buscarPorGenero(cancionesGenero); // terminado (Gabriel) ->sin testear<- // testeado funciona 
       break;
     case '3':
-      //buscaPorArtista(cancionesArtista); // pendiente
+      //buscaPorArtista(cancionesArtista); // pendiente 
       break;
     case '4':
-      buscarPorTempo(cancionesTempo) ; // terminado(Felipe) ->sin testear<-
+      buscarPorTempo(cancionesTempo) ; // terminado(Felipe) ->sin testear<- // testeado funciona 
       break;
     case '5':
-      //crearListaReproducion() ;  // pendiente
+      crearListaReproducion(mapaListasReproducion) ;  // terminado (Gabriel) ->sin testear<-
       break;
     case '6':
       //AgreagarCancionLista() ; // pendiente 
