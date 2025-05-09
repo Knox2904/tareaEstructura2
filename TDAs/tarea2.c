@@ -217,6 +217,73 @@ void buscarPorGenero( Map* cancionesGenero){
 
 
 
+/*
+esta es la funcion buscarPorTempo, ya que en la funcion cargar_canciones se categorizo los tempos según Lentas, Moderadas y Rápidas, lo
+unico que hace esta funcion es buscar según el tipo de tempo, en este caso usando una variable llamada rtempo, que se ocupara
+en un switch para los distintos casos, 4 en particular, los tipos de tempos y el default que seria ninguno de esos.
+*/
+void buscarPorTempo(Map *cancionesTempo) 
+{
+  if (cancionesTempo == NULL || map_first(cancionesTempo) == NULL) 
+  {
+    printf("El mapa está vacío o no se inicio correctamente. Por favor, revisar la carga del archivo CSV.\n");
+    return;
+  }
+
+  printf("Seleccione el rango de tempo para buscar canciones:\n");
+  printf("1. Lentas (Tempo < 80 BPM)\n");
+  printf("2. Moderadas (80 <= Tempo <= 120 BPM)\n");
+  printf("3. Rápidas (Tempo > 120 BPM)\n");
+  printf("Ingrese su opción (1-3): ");
+
+  int opcion;
+  scanf("%d", &opcion);
+
+  //ahora se usan cases para que no se llene de ifs y sea más eficiente el codigo y mas amigable de leer.
+  //se usan los cases con una variable que toma las distintas situaciones de tempo, ya sea Lentas, Moderadas o Rápidas.
+  char *rTempo;
+  switch (opcion) {
+    case 1:
+      rTempo = "Lentas";
+      break;
+    case 2:
+      rTempo = "Moderadas";
+      break;
+    case 3:
+      rTempo = "Rápidas";
+      break;
+    default:
+      printf("Opción no válida.\n");
+      return;
+  }
+
+  //  ahora buscamos el rango de tempo en el mapa, se mostrara un mensaje en la pantalla que dira la situacion, ya sea 
+  //si es que se encontro o en el peor caso de que no exista cancion con ese tipo de tempo se avisara la situacion.
+  MapPair *tempoPair = map_search(cancionesTempo, rTempo);
+  if (tempoPair == NULL) {
+    printf("No se encontraron canciones en el rango de tempo descrito (%s).\n", rTempo);
+    return;
+  }
+
+  // se obtiene la lista de canciones asociada al rango de tempo
+  List *listaCanciones = (List *)tempoPair->value;
+  song *cancion = list_first(listaCanciones);
+
+  //  ahora se muestra las canciones del rango de tempo seleccionado
+  printf("+------------------------------+------------------------------+\n");
+  printf("|          Nombre              |           Artista           |\n");
+  printf("+------------------------------+------------------------------+\n");
+
+  while (cancion != NULL) {
+    printf("| %-28s | %-28s |\n", cancion->nombreCancion, cancion->artistas);
+    cancion = list_next(listaCanciones);
+  }
+
+  printf("+------------------------------+------------------------------+\n");
+}
+
+
+
 int main() {
   char opcion; // Variable para almacenar una opción ingresada por el usuario
                // (sin uso en este fragmento)
@@ -247,7 +314,7 @@ int main() {
       //buscaPorArtista(cancionesArtista); // pendiente
       break;
     case '4':
-      //buscarPorTempo(cancionesTempo) ; // pendiente 
+      buscarPorTempo(cancionesTempo) ; // terminado(Felipe) ->sin testear<-
       break;
     case '5':
       //crearListaReproducion() ;  // pendiente
