@@ -24,3 +24,15 @@ Cambios realizados:
 - Creación de la función de búsqueda por género (terminada, sin testear).
 
 #---------------------------------------------------
+
+Fecha: 9/5
+Autor: Gabriel
+Cambios realizados:
+- Creación de la funcion buscar por artista.
+- Optimizacion de la lectura del archivo CSV.
+- Modificación de la función de lectura del CSV para soportar un cuarto mapa (por ID).
+- Corregidos errores de ortografia varios y legiblidad del codigo en general 
+- Creación de la funcion crear lista de reproduccion .
+- Creación de la funcion agregar a lista de reproduccion.
+
+#---------------------------------------------------

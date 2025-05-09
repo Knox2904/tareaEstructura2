@@ -315,7 +315,6 @@ void buscaPorArtista(Map*cancionesArtista) {
   }
 }
 
-
 void buscarPorGenero( Map* cancionesGenero){
   if(cancionesGenero == NULL || map_first(cancionesGenero) == NULL){
     printf("el mapa esta vacio o no se inicio bien , favor revisar la lectura del .csv \n") ; 
