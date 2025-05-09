@@ -84,6 +84,7 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
     perror("Error al abrir el archivo"); // Informa si el archivo no puede abrirse
     return;
   }
+  printf("Archivo abierto correctamente\n");
 
   // Ahora hacemos una variable para leer y almacenar los datos leidos de cada linea del archivo.
   char ** campos;
@@ -93,6 +94,7 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
   // Recorremos el archivo a traves de campos y le damos valores a las variables
   while ((campos = leer_linea_csv(archivo, ',')) != NULL)
   {
+    printf("Leyendo canción ID: %s\n", campos[0]);
     song * cancion = (song*)malloc(sizeof(song)); // Guardamos memoria para el struct de canción.
     cancion->id = atoi(campos[0]); // Se asigna el id
     strcpy(cancion->artistas, campos[2]); // Se asigna el nombre del artista o artistas
@@ -234,7 +236,9 @@ int main() {
 
     switch (opcion) {
     case '1':
+      printf("Cargando canciones...\n");
       cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa (Gabriel)
+      printf("Canciones cargadas correctamente.\n");
       break;
     case '2':
       buscarPorGenero(cancionesGenero); // terminado (Gabriel) ->sin testear<-
