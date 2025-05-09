@@ -94,7 +94,7 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero , Map *cancion
   // Recorremos el archivo a traves de campos y le damos valores a las variables
   while ((campos = leer_linea_csv(archivo, ',')) != NULL)
   {
-    printf("Leyendo canción ID: %s\n", campos[0]);
+    printf("Leyendo cancion ID: %s\n", campos[0]);
     song * cancion = (song*)malloc(sizeof(song)); // Guardamos memoria para el struct de canción.
     cancion->id = atoi(campos[0]); // Se asigna el id
     strcpy(cancion->artistas, campos[2]); // Se asigna el nombre del artista o artistas
