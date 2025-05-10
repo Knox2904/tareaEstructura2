@@ -87,7 +87,8 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
     int contador = 0; // Para contar cuántas canciones se han procesado
     while ((campos = leer_linea_csv(archivo, ',')) != NULL) {
         contador++;
-        printf("Procesando cancion #%d | ID: %s\n", contador, campos[0]);
+        if (contador % 1000 == 0) printf("Procesando cancion #%d | ID: %s\n", contador, campos[0]);
+
 
         song *cancion = (song*)malloc(sizeof(song));
         if (cancion == NULL) {
@@ -186,14 +187,15 @@ void AgreagarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
   printf("Ingrese el nombre de la lista en la que desea ingresar (50 char max):\n");
   scanf(" %50[^\n]s", nombreLista);
 
-  printf("Ingrese el ID de la canción:\n");
-  scanf("%d", &id);
-
   MapPair *lista_pair = map_search(mapaListasReproducion, nombreLista);
   if (lista_pair == NULL) {
       printf("\033[1;31mFATAL ERROR: La lista no existe.\033[0m\n");
      return;
   }
+
+  printf("Ingrese el ID de la canción:\n");
+  scanf("%d", &id);
+
   Map *cancionesListasCreadas = (Map *)lista_pair->value;
 
 
