@@ -206,7 +206,8 @@ void AgreagarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
 
   song* cancion = (song*) map_search(cancionesID, &id);
   if (cancion == NULL) {
-    printf("\033[1;31mFATAL ERROR: La canción no existe.\033[0m\n");
+    printf("\033[1;31mFATAL ERROR: La canción no existe.Presione una tecla para continuar \033[0m\n");
+    getchar() ; 
     return;
   }
 
