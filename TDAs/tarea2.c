@@ -72,54 +72,62 @@ int is_equal_float(void *key1, void *key2) {
 }
 
 //revamp
-void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancionesTempo, Map *cancionesID) {
+void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancionesTempo, Map *cancionesID, List *listaGeneral) {
+    static FILE *archivo = NULL; // para mantener abierto entre llamadas
+
     const char *datos = "data/song_dataset_.csv";
-    FILE *archivo = fopen(datos, "r");
+
     if (archivo == NULL) {
-        perror("Error al abrir el archivo");
-        return;
+        archivo = fopen(datos, "r");
+        if (archivo == NULL) {
+            perror("Error al abrir el archivo");
+            return;
+        }
+        leer_linea_csv(archivo, ','); // saltar encabezado
+        printf("Archivo abierto correctamente\n");
     }
-    printf("Archivo abierto correctamente\n");
+
+    int cantidad_a_leer;
+    printf("Cuantas canciones deseas cargar en esta sesion?: ");
+    scanf("%d", &cantidad_a_leer);
 
     char **campos;
-    campos = leer_linea_csv(archivo, ','); // Saltamos el encabezado
+    int contador = 0;
 
-    int contador = 0; // Para contar cuántas canciones se han procesado
-    while ((campos = leer_linea_csv(archivo, ',')) != NULL) {
+    while (contador < cantidad_a_leer && (campos = leer_linea_csv(archivo, ',')) != NULL) {
         contador++;
+
         if (contador % 1000 == 0) printf("Procesando cancion #%d | ID: %s\n", contador, campos[0]);
 
-
-        song *cancion = (song*)malloc(sizeof(song));
+        song *cancion = malloc(sizeof(song));
         if (cancion == NULL) {
-            printf("Error al reservar memoria para la cancion\n");
+            printf("Error al reservar memoria\n");
             continue;
         }
 
-        cancion->id = atoi(campos[0]); 
-        cancion->artistas = strdup(campos[2]); 
-        cancion->album = strdup(campos[3]); 
-        cancion->nombreCancion = strdup(campos[4]); 
-        cancion->tempo = atof(campos[18]); 
+        cancion->id = atoi(campos[0]);
+        cancion->artistas = strdup(campos[2]);
+        cancion->album = strdup(campos[3]);
+        cancion->nombreCancion = strdup(campos[4]);
+        cancion->tempo = atof(campos[18]);
         cancion->genres = split_string(campos[20], ",");
 
-        
+        // --- Lista general ---
+        list_pushBack(listaGeneral, cancion);
 
-        // --- MAPA: Géneros ---
+        // --- MAPA: Género ---
         char *genre = list_first(cancion->genres);
         MapPair *genre_pair = map_search(cancionesGenero, genre);
-        List *genre_list = (genre_pair != NULL) ? (List*)genre_pair->value : NULL;
-
+        List *genre_list = genre_pair ? genre_pair->value : NULL;
         if (genre_list == NULL) {
             genre_list = list_create();
             map_insert(cancionesGenero, genre, genre_list);
         }
         list_pushBack(genre_list, cancion);
 
-        // --- MAPA: Artistas ---
+        // --- MAPA: Artista ---
         MapPair *artista_pair = map_search(cancionesArtista, cancion->artistas);
-        List *artista_list = (artista_pair != NULL) ? (List*)artista_pair->value : NULL;
-
+        List *artista_list = artista_pair ? artista_pair->value : NULL;
         if (artista_list == NULL) {
             artista_list = list_create();
             map_insert(cancionesArtista, cancion->artistas, artista_list);
@@ -127,20 +135,16 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
         list_pushBack(artista_list, cancion);
 
         // --- MAPA: Tempo ---
-        //Asignamos el rango de tempo
         char *tempo_rango;
-        if (cancion->tempo < 80) 
+        if (cancion->tempo < 80)
             tempo_rango = "Lentas";
-        else if (cancion->tempo <= 120) 
+        else if (cancion->tempo <= 120)
             tempo_rango = "Moderadas";
-        else 
+        else
             tempo_rango = "Rápidas";
 
-
-
         MapPair *tempo_pair = map_search(cancionesTempo, tempo_rango);
-        List *tempo_list = (tempo_pair != NULL) ? (List*)tempo_pair->value : NULL;
-
+        List *tempo_list = tempo_pair ? tempo_pair->value : NULL;
         if (tempo_list == NULL) {
             tempo_list = list_create();
             map_insert(cancionesTempo, tempo_rango, tempo_list);
@@ -151,9 +155,15 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
         map_insert(cancionesID, &cancion->id, cancion);
     }
 
-    printf("Se han procesado un total de %d canciones.\n", contador);
-    fclose(archivo);
+    if (contador < cantidad_a_leer) {
+        printf("Se llegó al final del archivo.\n");
+        fclose(archivo);
+        archivo = NULL;
+    } else {
+        printf("Se procesaron %d canciones en esta sesión.\n", contador);
+    }
 }
+
 
 
 void crearListaReproducion(Map* mapaListasReproducion){
@@ -371,7 +381,7 @@ void MostrarCancionesLista(Map *mapaListasReproducion)
   
   printf("Ingrese el nombre de la lista que desea ver :\n");
   char Lista[51];
-  scanf( "%50[^\n]s" , Lista);
+  scanf(" %50[^\n]s" , Lista);
 
   MapPair *ListaP = map_search(mapaListasReproducion , Lista);
   if (ListaP == NULL)
@@ -429,6 +439,8 @@ int main() {
   Map *cancionesArtista = map_create(is_equal_str);
   Map *cancionesTempo = map_create(is_equal_float) ;
   Map *mapaListasReproducion = map_create(is_equal_str) ; 
+  List* listaGeneral = list_create() ; 
+  
 
   // Recuerda usar un mapa por criterio de búsqueda
 
@@ -440,7 +452,7 @@ int main() {
     switch (opcion) {
     case '1':
       printf("Cargando canciones...\n");
-      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo , cancionesID); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa y cuarto(Gabriel) // testeado funciona 
+      cargar_canciones(cancionesArtista, cancionesGenero , cancionesTempo , cancionesID , listaGeneral); // semi-Terminado (Felipe) , modificado para poder agregar al tercer mapa y cuarto(Gabriel) // testeado funciona 
       printf("Canciones cargadas correctamente.\n");
       break;
     case '2':
@@ -459,7 +471,7 @@ int main() {
       AgreagarCancionLista(mapaListasReproducion , cancionesID) ; // terminado (Gabriel) ->sin testear<- 
       break;
     case '7':
-      MostarCancionesLista() ; // terminado (Felipe)  ->sin testear<-
+      MostrarCancionesLista(mapaListasReproducion) ; // terminado (Felipe)  ->sin testear<-
       break;
     }
     presioneTeclaParaContinuar();
