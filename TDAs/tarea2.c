@@ -333,11 +333,11 @@ void buscarPorGenero( Map* cancionesGenero){
 
   while(parActual != NULL){ //iteraciones en el mapa 
 
-    char *generoCSV = parActual->key ; //guardamos el genero en una varable para poder usarlo mas facil 
+    char *generoCSV = parActual->key ; //guardamos el genero en una variable para poder usarlo mas facil 
     List* listaCanciones = parActual->value ; // lo mismo de arriba pero ahora con las canciones en lista 
 
     if(strcmp(generoUsuario , generoCSV) == 0){
-      song* cancion = list_first(listaCanciones) ; //lo de arriba pero ahoara una variable (una cancion no todas como arriba)
+      song* cancion = list_first(listaCanciones) ; //lo de arriba pero ahora una variable (una cancion no todas como arriba)
       //gracias profe laura por la tabla :D
       printf("+------------------------------+------------------------------+\n");
       printf("|          Nombre              |           Artista           |\n");
@@ -357,6 +357,65 @@ void buscarPorGenero( Map* cancionesGenero){
   if(!bandera){
     printf("no se encontraron canciones con el genero dado \n") ; 
   }
+}
+
+void MostrarCancionesLista(Map *mapaListasReproducion)
+{
+  if (mapaListasReproducion == NULL || map_first(mapaListasReproducion) == NULL) 
+  {
+    printf("El mapa de listas de reproduccion esta vacio o no se inicio bien , por favor revisar la lectura del csv.\n");
+    return;
+  }
+
+  
+  
+  printf("Ingrese el nombre de la lista que desea ver :\n");
+  char Lista[51];
+  scanf( "%50[^\n]s" , Lista);
+
+  MapPair *ListaP = map_search(mapaListasReproducion , Lista);
+  if (ListaP == NULL)
+  {
+    printf("la lista '%s' no esta registrada.\n", Lista);
+    return;
+  }
+
+  List *cancionesL = (List *)ListaP -> value;
+  song * cancion = list_first(cancionesL);
+
+  if (cancion == NULL)
+  { 
+    printf("la lista '%s' esta vacia.\n", Lista);
+    return;
+  } 
+
+  printf("|----------------------------------------------------------------------------|\n");
+  printf("| %-7s | %-30s | %-20s |\n", "ID", "Nombre", "Álbum");
+  printf("| %-7s | %-30s | %-20s |\n", "Tempo", "Artista", "Género");
+  printf("|----------------------------------------------------------------------------|\n");
+
+  while (cancion != NULL) 
+  {
+    //aqui se concatenan los generos en una cadena por si es que la cancion tiene mas de un genero
+    char generosC[200] = "";
+    char *genero = list_first(cancion->genres);
+    while (genero != NULL)
+    {
+      strcat(generosC , genero);
+      genero = list_next(cancion -> genres);
+      if (genero != NULL) strcat(generosC , ", ");
+
+    }
+
+    printf("| %-5d | %-30s | %-20s |\n", cancion->id, cancion->nombreCancion, cancion->album);
+    printf("| %-5.1f | %-30s | %-20s |\n", cancion->tempo, cancion->artistas, generosC);
+    printf("|----------------------------------------------------------------------------|\n");
+
+    cancion = list_next(cancionesL);
+  }
+
+  printf("+------------------------------------------------------------------------------------+\n");
+  
 }
 
 int main() {
@@ -400,7 +459,7 @@ int main() {
       AgreagarCancionLista(mapaListasReproducion , cancionesID) ; // terminado (Gabriel) ->sin testear<- 
       break;
     case '7':
-      //MostarCancionesLista() ; // pendiente 
+      MostarCancionesLista() ; // terminado (Felipe)  ->sin testear<-
       break;
     }
     presioneTeclaParaContinuar();
