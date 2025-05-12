@@ -105,19 +105,31 @@ typedef struct Map {
    se pide el nombre de la lista, se verifica y luego se ve dentro del mapa que contiene las listas, si esta se accede a esta y se muestra su contenido, si no te devuelve al menu
 
 Funciones de la Lista Enlazada :
+
     -list_create: Crea una nueva lista enlazada.
+
     -list_sortedInsert: Inserta un nodo en una posición ordenada según una función de comparación.
+
     -list_clean:limina todos los nodos de la lista, liberando la memoria asociada a cada uno.
+
     -list_size:Devuelve el tamaño de la lista (número de elementos almacenados).
+
     -list_first: Elimina todos los nodos de la lista.
+
     -list_popCurrent:Elimina el nodo actualmente seleccionado (current) de la lista y devuelve un puntero al dato almacenado en ese nodo.
+
     -list_pushCurrent:nserta un nuevo elemento después del nodo actual (current) de la lista.
+
     -list_pushFront: Inserta un nodo al inicio de la lista.
+
     -list_popFront:Elimina el primer elemento de la lista y devuelve un puntero al dato almacenado en ese nodo.
+
     -list_pushBack: Inserta un nodo al final de la lista.
+
     -list_popBack:Elimina el último elemento de la lista y devuelve un puntero al dato almacenado en ese nodo.
 
 Funciones del Mapa
+
     -map_create: Crea un mapa no ordenado que utiliza una función de igualdad para comparar claves.
 
     -sorted_map_create: Crea un mapa ordenado que utiliza una función para comparar claves y establecer el orden.
@@ -222,7 +234,7 @@ Cambios realizados:
 
 #---------------------------------------------------
 
-en general: aporte de ambos Exlente 10/10.
+en general: aporte de ambos Excelente 10/10.
 
 **importante recalcar que se aprecia la participacion de parte de gpt y copilot por mencionar errores y ideas de como implementar funciones, ademas de ayudar con aspectos de ver como leer correctamente el csv, con la idea de revisarlo directamente.**
 
