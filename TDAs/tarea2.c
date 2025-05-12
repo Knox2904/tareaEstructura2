@@ -1,6 +1,4 @@
-/*
-ve el nuevo archivo porfa , puedes borrar este mensaje cuando lo hagas 
-*/
+
 
 #include "tdas/extra.h"
 #include "tdas/list.h"
@@ -141,7 +139,7 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
         else if (cancion->tempo <= 120)
             tempo_rango = "Moderadas";
         else
-            tempo_rango = "Rápidas";
+            tempo_rango = "Rapidas";
 
         MapPair *tempo_pair = map_search(cancionesTempo, tempo_rango);
         List *tempo_list = tempo_pair ? tempo_pair->value : NULL;
@@ -152,7 +150,9 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
         list_pushBack(tempo_list, cancion);
 
         // --- MAPA: ID ---
-        map_insert(cancionesID, &cancion->id, cancion);
+        int *key = malloc(sizeof(int));
+        *key = cancion->id;
+        map_insert(cancionesID, key, cancion);
     }
 
     if (contador < cantidad_a_leer) {
@@ -160,7 +160,7 @@ void cargar_canciones(Map *cancionesArtista, Map *cancionesGenero, Map *cancione
         fclose(archivo);
         archivo = NULL;
     } else {
-        printf("Se procesaron %d canciones en esta sesión.\n", contador);
+        printf("Se procesaron %d canciones en esta sesion.\n", contador);
     }
 }
 
@@ -185,9 +185,9 @@ void crearListaReproducion(Map* mapaListasReproducion){
 }
 
 
-void AgreagarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
+void AgregarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
   if (mapaListasReproducion == NULL || map_first(mapaListasReproducion) == NULL) {
-    printf("El mapa esta vacio o no se inicializo bien. Favor revisar la creacion del mapa.\n");
+    printf("El mapa de listas de reproduccion está vacio o no se inicializo correctamente.\n");
     return;
   }
 
@@ -197,35 +197,42 @@ void AgreagarCancionLista(Map* mapaListasReproducion, Map* cancionesID) {
   printf("Ingrese el nombre de la lista en la que desea ingresar (50 char max):\n");
   scanf(" %50[^\n]s", nombreLista);
 
-  MapPair *lista_pair = map_search(mapaListasReproducion, nombreLista);
-  if (lista_pair == NULL) {
-      printf("\033[1;31mFATAL ERROR: La lista no existe.\033[0m\n");
-     return;
+  // ahora Buscamos la lista de reproducción
+  MapPair *listaPair = map_search(mapaListasReproducion, nombreLista);
+  if (listaPair == NULL) {
+    printf("La lista '%s' no existe.\n", nombreLista);
+    return;
   }
 
-  printf("Ingrese el ID de la canción:\n");
+  printf("Ingrese el ID de la cancion:\n");
   scanf("%d", &id);
 
-  Map *cancionesListasCreadas = (Map *)lista_pair->value;
+  // se obtiene la lista de canciones asociada a la lista de reproducción
+  List *listaCanciones = (List *)listaPair->value;
 
+  // se Verifica si la canción ya está en la lista
+  song *cancionExistente = list_first(listaCanciones);
+  while (cancionExistente != NULL) {
+    if (cancionExistente->id == id) {
+      printf("La canción con ID %d ya está en la lista '%s'.\n", id, nombreLista);
+      return;
+    }
+    cancionExistente = list_next(listaCanciones);
+  }
 
-  if (map_search(cancionesListasCreadas, &id) != NULL) {
-    printf("\033[1;31mFATAL ERROR: La canción ya está en la lista.\033[0m\n");
+  // Buscar la canción por ID
+  MapPair *cancionPair = map_search(cancionesID, &id);
+  if (cancionPair == NULL) {
+    printf("La cancion con ID %d no existe.\n", id);
     return;
   }
 
-  song* cancion = (song*) map_search(cancionesID, &id);
-  if (cancion == NULL) {
-    printf("\033[1;31mFATAL ERROR: La canción no existe.Presione una tecla para continuar \033[0m\n");
-    getchar() ; 
-    return;
-  }
+  song *cancion = (song *)cancionPair->value;
 
-  int* key = malloc(sizeof(int));
-  *key = id;
-  map_insert(cancionesListasCreadas, key, cancion);
+  //finalmente se agrega la canción a la lista
+  list_pushBack(listaCanciones, cancion);
 
-  printf("Se insertó correctamente.\n");
+  printf("Se agrego la cancion '%s' a la lista '%s'.\n", cancion->nombreCancion, nombreLista);
 }
 
 
@@ -282,12 +289,15 @@ void buscarPorTempo(Map *cancionesTempo)
   song *cancion = list_first(listaCanciones);
 
   //  ahora se muestra las canciones del rango de tempo seleccionado
-  printf("+------------------------------+------------------------------+\n");
-  printf("|          Nombre              |           Artista           |\n");
-  printf("+------------------------------+------------------------------+\n");
+  printf("|----------------------------------------------------------------------------|\n");
+  printf("| %-7s | %-30s | %-20s |\n", "ID", "Nombre", "Álbum");
+  printf("| %-7s | %-30s | %-20s |\n", "Tempo", "Artista", "Género");
+  printf("|----------------------------------------------------------------------------|\n");
 
   while (cancion != NULL) {
-    printf("| %-28s | %-28s |\n", cancion->nombreCancion, cancion->artistas);
+    printf("| %-5d | %-30s | %-20s |\n", cancion->id, cancion->nombreCancion, cancion->album);
+    printf("| %-5.1f | %-30s | %-20s |\n", cancion->tempo, cancion->artistas, cancion->genres);
+    printf("|----------------------------------------------------------------------------|\n");
     cancion = list_next(listaCanciones);
   }
 
@@ -349,12 +359,16 @@ void buscarPorGenero( Map* cancionesGenero){
     if(strcmp(generoUsuario , generoCSV) == 0){
       song* cancion = list_first(listaCanciones) ; //lo de arriba pero ahora una variable (una cancion no todas como arriba)
       //gracias profe laura por la tabla :D
-      printf("+------------------------------+------------------------------+\n");
-      printf("|          Nombre              |           Artista           |\n");
-      printf("+------------------------------+------------------------------+\n");
+      printf("|----------------------------------------------------------------------------|\n");
+      printf("| %-7s | %-30s | %-20s |\n", "ID", "Nombre", "Álbum");
+      printf("| %-7s | %-30s | %-20s |\n", "Tempo", "Artista", "Género");
+      printf("|----------------------------------------------------------------------------|\n");
 
       while (cancion != NULL) {
-        printf("| %-28s | %-28s |\n", cancion->nombreCancion, cancion->artistas);
+        printf("| %-5d | %-30s | %-20s |\n", cancion->id, cancion->nombreCancion, cancion->album);
+        printf("| %-5.1f | %-30s | %-20s |\n", cancion->tempo, cancion->artistas, cancion->genres);
+        printf("|----------------------------------------------------------------------------|\n");
+
         cancion = list_next(listaCanciones);
       }
 
@@ -406,19 +420,8 @@ void MostrarCancionesLista(Map *mapaListasReproducion)
 
   while (cancion != NULL) 
   {
-    //aqui se concatenan los generos en una cadena por si es que la cancion tiene mas de un genero
-    char generosC[200] = "";
-    char *genero = list_first(cancion->genres);
-    while (genero != NULL)
-    {
-      strcat(generosC , genero);
-      genero = list_next(cancion -> genres);
-      if (genero != NULL) strcat(generosC , ", ");
-
-    }
-
     printf("| %-5d | %-30s | %-20s |\n", cancion->id, cancion->nombreCancion, cancion->album);
-    printf("| %-5.1f | %-30s | %-20s |\n", cancion->tempo, cancion->artistas, generosC);
+    printf("| %-5.1f | %-30s | %-20s |\n", cancion->tempo, cancion->artistas, cancion->genres);
     printf("|----------------------------------------------------------------------------|\n");
 
     cancion = list_next(cancionesL);
@@ -468,15 +471,122 @@ int main() {
       crearListaReproducion(mapaListasReproducion) ;  // terminado (Gabriel) // testeado funciona 
       break;
     case '6':
-      AgreagarCancionLista(mapaListasReproducion , cancionesID) ; // terminado (Gabriel) ->sin testear<- 
+      AgregarCancionLista(mapaListasReproducion , cancionesID) ; // terminado (Gabriel) ->sin testear<- //testeado funciona
       break;
     case '7':
-      MostrarCancionesLista(mapaListasReproducion) ; // terminado (Felipe)  ->sin testear<-
+      MostrarCancionesLista(mapaListasReproducion) ; // terminado (Felipe)  ->sin testear<- //testeado funciona
       break;
     }
     presioneTeclaParaContinuar();
 
   } while (opcion != '8');
+
+  song *cancion = list_first(listaGeneral);
+  while (cancion != NULL) 
+  {
+    
+    free(cancion->artistas);
+    free(cancion->album);
+    free(cancion->nombreCancion);
+
+    
+    char *genero = list_first(cancion->genres);
+    while (genero != NULL) 
+    {
+      free(genero);
+      genero = list_next(cancion->genres);
+    }
+    list_clean(cancion->genres);
+    free(cancion->genres);
+
+    
+    free(cancion);
+
+    
+    cancion = list_next(listaGeneral);
+  }
+  list_clean(listaGeneral);
+  free(listaGeneral);
+
+  
+  MapPair *par = map_first(cancionesArtista);
+  while (par != NULL) 
+  {
+    free(par->key); 
+    
+    List *lista = (List *)par->value;
+    song *cancion = list_first(lista);
+    while (cancion != NULL) 
+    {
+      free(cancion); 
+      cancion = list_next(lista);
+    }
+    list_clean(lista);
+    free(lista);
+
+    free(par); 
+    par = map_next(cancionesArtista);
+  }
+  map_clean(cancionesArtista);
+  free(cancionesArtista);
+
+  
+  par = map_first(cancionesGenero);
+  while (par != NULL) 
+  {
+    free(par->key); 
+    List *lista = (List *)par->value;
+    list_clean(lista);
+    free(lista);
+
+    free(par); 
+    par = map_next(cancionesGenero);
+  }
+  map_clean(cancionesGenero);
+  free(cancionesGenero);
+
+  
+  par = map_first(cancionesTempo);
+  while (par != NULL) 
+  {
+    free(par->key); 
+    List *lista = (List *)par->value;
+    list_clean(lista);
+    free(lista);
+
+    free(par); 
+    par = map_next(cancionesTempo);
+  }
+  map_clean(cancionesTempo);
+  free(cancionesTempo);
+
+  
+  par = map_first(cancionesID);
+  while (par != NULL) 
+  {
+    free(par->key); 
+    free(par->value); 
+    free(par); 
+    par = map_next(cancionesID);
+  }
+  map_clean(cancionesID);
+  free(cancionesID);
+
+  
+  par = map_first(mapaListasReproducion);
+  while (par != NULL) 
+  {
+    free(par->key); 
+    List *lista = (List *)par->value;
+    list_clean(lista);
+    free(lista);
+
+    free(par); 
+    par = map_next(mapaListasReproducion);
+  }
+  map_clean(mapaListasReproducion);
+  free(mapaListasReproducion);
+
 
   return 0;
 }
