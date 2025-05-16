@@ -1,114 +1,157 @@
+#include "tdas/extra.h"
+#include "tdas/list.h"
+#include "tdas/stack.h"
+#include "tdas/map.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "tdas/list.h"
-#include "tdas/heap.h"
-#include "tdas/extra.h"
 #include <string.h>
 
-// Definición de la estructura para el estado del puzzle
+
 typedef struct {
-    int square[3][3]; // Matriz 3x3 que representa el tablero
-    int x;    // Posición x del espacio vacío
-    int y;    // Posición y del espacio vacío
-    List* actions; //Secuencia de movimientos para llegar al estado
-} State;
+    char nombre[100] ; 
+    char descripcion[100] ; 
+    List *items ; 
+    char* conexiones[4] ; 
+    int esFinal ; 
+    
+}Escenario;
 
-int distancia_L1(State* state) {
-    int ev=0;
-    int k=1;
-    for(int i=0;i<3;i++)
-        for(int j=0;j<3;j++){
-            int val=state->square[i][j];
-            if (val==0) continue;
-            int ii=(val)/3;
-            int jj=(val)%3;
-            ev+= abs(ii-i) + abs(jj-j);
-        }
-    return ev;
+typedef struct {
+    char nombre[50] ; 
+    int peso ; 
+    int valor ; 
+}Item;
+
+Map* mapaEscenarios ; 
+
+/**
+ * Compara dos claves de tipo string para determinar si son iguales.
+ * Esta función se utiliza para inicializar mapas con claves de tipo string.
+ *
+ * @param key1 Primer puntero a la clave string.
+ * @param key2 Segundo puntero a la clave string.
+ * @return Retorna 1 si las claves son iguales, 0 de lo contrario.
+ */
+int is_equal_str(void *key1, void *key2) {
+  return strcmp((char *)key1, (char *)key2) == 0;
+}
+
+void mostrarMenuPrincipal() {
+    limpiarPantalla();
+    puts("========================================");
+    puts("               Graph Quest              ");
+    puts("========================================");
+
+    puts("1) Cargar CSV");
+    puts("2) Empezar a jugar");
+    puts("3) Salir de emergencia");
 }
 
 
-// Función para imprimir el estado del puzzle
-void imprimirEstado(const State *estado) {
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (estado->square[i][j] == 0)
-                printf("x "); // Imprime un espacio en blanco para el espacio vacío
-            else
-                printf("%d ", estado->square[i][j]);
-        }
-        printf("\n");
+/**
+ * Carga canciones desde un archivo CSV
+ */
+void leer_escenarios() {
+  // Intenta abrir el archivo CSV que contiene datos de películas
+  FILE *archivo = fopen("data/graphquest.csv", "r");
+  if (archivo == NULL) {
+    perror(
+        "Error al abrir el archivo"); // Informa si el archivo no puede abrirse
+    return;
+  }
+
+  char **campos;
+  // Leer y parsear una línea del archivo CSV. La función devuelve un array de
+  // strings, donde cada elemento representa un campo de la línea CSV procesada.
+  campos = leer_linea_csv(archivo, ','); // Lee los encabezados del CSV
+
+
+  // Lee cada línea del archivo CSV hasta el final
+  while ((campos = leer_linea_csv(archivo, ',')) != NULL) {
+    printf("ID: %d\n", atoi(campos[0]));
+    printf("Nombre: %s\n", campos[1]);
+    printf("Descripción: %s\n", campos[2]);
+
+    List* items = split_string(campos[3], ";");
+
+    printf("Items: \n");
+    for(char *item = list_first(items); item != NULL; 
+          item = list_next(items)){
+
+        List* values = split_string(item, ",");
+        char* item_name = list_first(values);
+        int item_value = atoi(list_next(values));
+        int item_weight = atoi(list_next(values));
+        printf("  - %s (%d pts, %d kg)\n", item_name, item_value, item_weight);
+        list_clean(values);
+        free(values);
     }
+
+    int arriba = atoi(campos[4]);
+    int abajo = atoi(campos[5]);
+    int izquierda = atoi(campos[6]);
+    int derecha = atoi(campos[7]);
+
+    if (arriba != -1) printf("Arriba: %d\n", arriba);
+    if (abajo != -1) printf("Abajo: %d\n", abajo);
+    if (izquierda != -1) printf("Izquierda: %d\n", izquierda);
+    if (derecha != -1) printf("Derecha: %d\n", derecha);
+
+    
+    int is_final = atoi(campos[8]);
+    if (is_final) printf("Es final\n");
+
+    list_clean(items);
+    free(items);
+    
+  }
+  fclose(archivo); // Cierra el archivo después de leer todas las líneas
+
 }
+
+void jugar(){
+
+    printf("no hay nada aun :P \n") ; 
+
+}
+
+
 
 
 int main() {
-    // Estado inicial del puzzle
-    State estado_inicial = {
-        {{0, 2, 8}, // Primera fila (0 representa espacio vacío)
-         {1, 3, 4}, // Segunda fila
-         {6, 5, 7}, // Tercera fila
-         },  
-        0, 1   // Posición del espacio vacío (fila 0, columna 1)
-    };
-    estado_inicial.actions = list_create();
+    mapaEscenarios = map_create(is_equal_str) ; //inicio mnapa
+ 
+    char opcion ; 
 
-    // Imprime el estado inicial
-    printf("Estado inicial del puzzle:\n");
-    imprimirEstado(&estado_inicial);
 
-    printf("Distancia L1:%d\n", distancia_L1(&estado_inicial));
+    do{
+        mostrarMenuPrincipal() ; 
+        printf("Que desea hacer : \n") ; 
+        scanf(" %c" , &opcion) ; 
 
-    //Ejemplo de heap (cola con prioridad)
-    printf("\n***** EJEMPLO USO DE HEAP ******\nCreamos un Heap e insertamos 3 elementos con distinta prioridad\n");
-    Heap* heap = heap_create();
-    char* data = strdup("Cinco");
-    printf("Insertamos el elemento %s con prioridad -5\n", data);
-    heap_push(heap, data, -5 /*prioridad*/);
-    data = strdup("Seis");
-    printf("Insertamos el elemento %s con prioridad -6\n", data);
-    heap_push(heap, data, -6 /*prioridad*/);
-    data = strdup("Siete");
-    printf("Insertamos el elemento %s con prioridad -7\n", data);
-    heap_push(heap, data, -7 /*prioridad*/);
 
-    printf("\nLos elementos salen del Heap ordenados de mayor a menor prioridad\n");
-    while (heap_top(heap) != NULL){
-        printf("Top: %s\n", (char*) heap_top(heap));      
-        heap_pop(heap);
-    }
-    printf("No hay más elementos en el Heap\n");
+        switch (opcion){
+            case '1' :
+            printf("cargando escenario \n") ; 
+            leer_escenarios(mapaEscenarios);
+            break;
 
-    char opcion;
-    do {
-        printf("\n***** EJEMPLO MENU ******\n");
-        puts("========================================");
-        puts("     Escoge método de búsqueda");
-        puts("========================================");
-        
-        puts("1) Búsqueda en Profundidad");
-        puts("2) Buscar en Anchura");
-        puts("3) Buscar Mejor Primero");
-        puts("4) Salir");
-    
-        printf("Ingrese su opción: ");
-        scanf(" %c", &opcion);
-    
-        switch (opcion) {
-        case '1':
-          //dfs(estado_inicial);
-          break;
-        case '2':
-          //bfs(estado_inicial);
-          break;
-        case '3':
-          //best_first(estado_inicial);
-          break;
+            case '2' : 
+
+                printf("buena suerte : \n") ;
+                jugar() ; //revisar si se leyo el csv
+            break;
+
+            case '3' :
+            break;
+
+            default :
+            printf("opcion  no valida , selecione una opcion valida (1 o 2)\n") ;
+            break; 
         }
         presioneTeclaParaContinuar();
-        limpiarPantalla();
 
-  } while (opcion != '4');
-
-  return 0;
+    }while(opcion != '3') ; 
+    
+    return 0;
 }
