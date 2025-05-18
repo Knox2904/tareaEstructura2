@@ -1,0 +1,37 @@
+aqui pon los comandos que quieras usar varais veces pato 
+
+
+
+
+
+
+
+
+----------------------------------------
+cambio directorio:
+cd "/c/Users/Gabriel/Desktop/programacion/C/tarea3/tareaEstructura2-3/TDAs"
+
+compliacion :
+./test3.sh
+
+
+
+
+----------------------------------------------------
+cambios 16-5 Gabriel Lopez:
+- creacion de struct escenario
+- creacion de struct Item 
+- creacion de un menu principal , para el imicio del programa
+- creacion de un mapa para guardar los casos del grafo
+
+-----------------------------------------------------
+
+cambios 17-5 Gabriel Lopez:
+- creacion de struct Jugador
+- creacion de Lista jugadores , para la imprementacion del multijugador
+- Se finalizo la craecion de un menu para seleccion de nombres y cantidad de juagores 
+- Se cambiaron las struct para ser dinamicas y no estaticas 
+- Se creo una funcion para poder mostrar el mapa del juego , aun que aun faltan las conexiones
+- Se termino de adaptar la funcion para leer el CSV con el mapa del juego 
+
+-----------------------------------------------------
