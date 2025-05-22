@@ -16,7 +16,7 @@ typedef struct {
     int id ; 
     char *descripcion; 
     List *items ; 
-    char* conexiones[4] ; 
+    char* conexiones[4] ; //arriba , abajo , izq , der 
     int esFinal ; 
     
 }Escenario;
@@ -151,114 +151,133 @@ void ConseguirNombres(Map* mapaEscenarios , List* jugadores){
     puts("               Graph Quest              ");
     puts("========================================");
 
-    int cantidadJugadores ; 
-    printf("Ingrese la cantidad de jugadores : \n") ;
-    scanf("%d" , &cantidadJugadores) ; 
+    int cantidadJugadores;
+    printf("Ingrese la cantidad de jugadores: \n");
+    scanf("%d", &cantidadJugadores);
 
-
-    char* nombre ;
-    nombre = malloc(51) ; //50 caracteres maximo 
-
-    int idInicial = 0;
-    char* idInicialStr = malloc(12) ; 
+    char* nombre = malloc(51);  // 50 caracteres maximo + '\0'
+    int idInicial = 1;
+    char idInicialStr[12]; 
     sprintf(idInicialStr, "%d", idInicial);
 
-    int i = 0 ; 
-    MapPair* par = map_search(mapaEscenarios, idInicialStr);
-    Escenario* escenarioInicial = par ? (Escenario*) par->value : NULL;
-
+    int i = 0;
     do {
-        printf("ingrese el nombre del jugador : \n") ;
-        scanf(" %s" , nombre) ;
+        printf("Ingrese el nombre del jugador: \n");
+        scanf(" %50s", nombre);
 
-        if(existeElJugador(jugadores , nombre)){
-            printf("El nombre del jugador ya esta en uso \n") ; 
+        if (existeElJugador(jugadores, nombre)) {
+            printf("El nombre del jugador ya está en uso.\n");
             continue;
         }
 
-        Jugador* jugadorTemp = malloc(sizeof(Jugador)) ;
+        Jugador* jugadorTemp = malloc(sizeof(Jugador));
+        jugadorTemp->idJugador = i;
+        jugadorTemp->nombreJugador = strdup(nombre);
 
-        jugadorTemp->idJugador = i ; 
-        jugadorTemp->nombreJugador = strdup(nombre) ; 
+        MapPair* par2 = map_search(mapaEscenarios, &idInicial) ; 
+        if (!par2) {
+            printf("Error: No se encontró el escenario inicial.\n");
+            free(jugadorTemp);
+            continue;
+        }
+        jugadorTemp->posicion = (Escenario*) par2->value;
 
-        MapPair* par2 = map_search(mapaEscenarios, idInicialStr);
-        jugadorTemp->posicion = par2 ? (Escenario*) par2->value : NULL;
-
-        list_pushBack(jugadores , jugadorTemp) ; 
-        i++ ; 
+        list_pushBack(jugadores, jugadorTemp);
+        i++;
     } while (i < cantidadJugadores);
     
     free(nombre);
-    free(idInicialStr);
-
 }
 
 
-void MostrarMapa(Map* mapaEscenarios, List* jugadores) { //no funciona aun , hay que revisar las conexiones 
+void MostrarMapa(Map* mapaEscenarios, List* jugadores) {
     Escenario* matriz[N][M] = {NULL};
 
-    // Llenamos la matriz con los escenarios según su ID
+    // Llenar la matriz con escenarios
     MapPair* par = map_first(mapaEscenarios);
     while (par) {
         Escenario* escenario = (Escenario*) par->value;
         int fila = (escenario->id - 1) / M;
-        int columna = (escenario->id - 1) % M;
-        if (fila < N && columna < M)
-            matriz[fila][columna] = escenario;
+        int col = (escenario->id - 1) % M;
+        if (fila < N && col < M)
+            matriz[fila][col] = escenario;
         par = map_next(mapaEscenarios);
     }
 
+    // Verificar si la lista de jugadores está inicializada
+    if (!jugadores) {
+        printf("Error: La lista de jugadores no está inicializada.\n");
+        return;
+    }
+    if (list_size(jugadores) == 0) {
+        printf("Error: No hay jugadores en la lista.\n");
+        return;
+    }
+
     for (int i = 0; i < N; i++) {
-        // Línea 1: imprimir nombres e IDs
+        // Línea 1: Escenarios + conexión horizontal
         for (int j = 0; j < M; j++) {
             Escenario* esc = matriz[i][j];
             if (esc) {
-                printf("| %2d: %-*s", esc->id, EspacioCelda - 6, esc->nombre); // 6 = "| %2d: "
+                // Verificar si hay jugadores en este escenario
+                char jugadoresEnEscenario[EspacioCelda] = "";
+                Jugador* jugador = list_first(jugadores);
+                
+                while (jugador) {
+                    if (jugador->posicion) {
+                        if (jugador->posicion->id == esc->id) {
+                            strcat(jugadoresEnEscenario, jugador->nombreJugador);
+                            strcat(jugadoresEnEscenario, ", ");
+                        }
+                    } else {
+                        printf("Advertencia: El jugador %s no tiene una posición definida.\n", jugador->nombreJugador);
+                    }
+
+                    jugador = list_next(jugadores);
+                }
+
+                // Eliminar la última coma y espacio para evitar formato incorrecto
+                if (strlen(jugadoresEnEscenario) > 0) {
+                    jugadoresEnEscenario[strlen(jugadoresEnEscenario) - 2] = '\0';
+                }
+
+                // Mostrar el escenario con los jugadores si hay alguno presente
+                if (strlen(jugadoresEnEscenario) > 0)
+                    printf("| %2d: %-*s [%s]", esc->id, EspacioCelda - 6, esc->nombre, jugadoresEnEscenario);
+                else
+                    printf("| %2d: %-*s", esc->id, EspacioCelda - 6, esc->nombre);
             } else {
                 printf("| %-*s", EspacioCelda, "");
+            }
+
+            // Conexión a la derecha
+            if (j < M - 1) {
+                Escenario* derecha = matriz[i][j + 1];
+                int hayConexion = 0;
+                if (esc && derecha && esc->conexiones[3] && atoi(esc->conexiones[3]) == derecha->id)
+                    hayConexion = 1;
+
+                if (hayConexion)
+                    printf(" <-----> ");
+                else
+                    printf("         ");
             }
         }
         printf("|\n");
 
-        // Línea 2: conexiones horizontales (izquierda <--> derecha)
-        for (int j = 0; j < M; j++) {
-            Escenario* esc = matriz[i][j];
-            Escenario* derecha = (j < M - 1) ? matriz[i][j + 1] : NULL;
-
-            if (esc && derecha) {
-                // Verificamos si hay conexión a la derecha
-                int hayConexion = 0;
-                if (esc->conexiones[3] && strcmp(esc->conexiones[3], derecha->nombre) == 0)
-                    hayConexion = 1;
-
-                if (hayConexion)
-                    printf("       <-->       ");
-                else
-                    printf("                  ");
-            } else {
-                printf("                  ");
-            }
-        }
-        printf("\n");
-
-        // Línea 3: conexiones verticales (abajo)
+        // Línea 2: Conexiones verticales
         if (i < N - 1) {
             for (int j = 0; j < M; j++) {
                 Escenario* esc = matriz[i][j];
                 Escenario* abajo = matriz[i + 1][j];
+                if (esc && abajo && esc->conexiones[1] && atoi(esc->conexiones[1]) == abajo->id)
+                    printf("%*s", EspacioCelda - 3, "||");
+                else
+                    printf("%*s", EspacioCelda - 3, " ");
 
-                if (esc && abajo) {
-                    int hayConexion = 0;
-                    if (esc->conexiones[1] && strcmp(esc->conexiones[1], abajo->nombre) == 0)
-                        hayConexion = 1;
-
-                    if (hayConexion)
-                        printf("        |         ");
-                    else
-                        printf("                  ");
-                } else {
-                    printf("                  ");
-                }
+                // Espacio entre columnas (compensar <----->)
+                if (j < M - 1)
+                    printf("         ");
             }
             printf("\n");
         }
@@ -266,7 +285,34 @@ void MostrarMapa(Map* mapaEscenarios, List* jugadores) { //no funciona aun , hay
 }
 
 
+void acionesJugador(Map* mapaEscenarios, List* jugadores){
 
+    puts("========================================");
+    puts("               Graph Quest              ");
+    puts("========================================");
+    puts("que desea hacer ? : ") ; 
+
+    puts("1) recoger item");//falta , revisar conflictos 
+    puts("2) descartar item");//falta 
+    puts("3) Avanzar en una direccion");//falta 
+    puts("4) reiniciar partida ");//falta 
+    puts("5) Salir del juego "); //falta 
+}
+
+
+
+void jugar(Map* mapaEscenarios , List* jugadores){
+
+    int tiempo = 10 ; // cambia la logica de esto a la formula que esta en el Notion
+    do{
+        MostrarMapa(mapaEscenarios , jugadores) ; 
+        mostrarEstadoJugador(mapaEscenarios , jugadores);//falta 
+        acionesJugador(mapaEscenarios , jugadores);//falta  
+        tiempo--;
+    } while (tiempo != 0 );
+    
+    
+}
 
 int main() {
     mapaEscenarios = map_create(is_equal_str) ; //inicio mnapa
@@ -291,7 +337,7 @@ int main() {
 
                 printf("buena suerte : \n") ;
                 ConseguirNombres(mapaEscenarios , jugadores) ; //revisar si se leyo el csv
-                MostrarMapa(mapaEscenarios , jugadores) ; 
+                jugar(mapaEscenarios , jugadores) ; 
             break;
 
             case '3' :

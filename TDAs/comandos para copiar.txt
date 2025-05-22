@@ -35,3 +35,11 @@ cambios 17-5 Gabriel Lopez:
 - Se termino de adaptar la funcion para leer el CSV con el mapa del juego 
 
 -----------------------------------------------------
+
+cambios 21-5 Gabriel Lopez:
+- Definicion de un maximo para poder imprimr mas limpiamente 
+- Solucionados problemas de Seg fault
+- Añadida las conexiones en el mapa ( arriba , abajo , izq , der)
+- Encapsulamiento de funciones para una mejor comprension 
+- Añadido mensajes para debug mas facil 
+- Cambios en las funciones mostrarMapa y ConseguirNombres 
