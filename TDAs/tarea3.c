@@ -298,6 +298,19 @@ void acionesJugador(Map* mapaEscenarios, List* jugadores){
     puts("4) reiniciar partida ");//falta 
     puts("5) Salir del juego "); //falta 
 }
+//funcion para sacar el peso total del inventario de un jugador.
+//ya que se ocupa la lista del inventario del jugador, se recorrer con un for mientras su inventario de next sea diferente a null
+//y se saca la cantidad total de peso segun sus items(y el peso de estos) en el inventario.
+int peso_Inv(List *inventario) 
+{
+    int total = 0;
+    for (Item *item =list_first(inventario);  item != NULL; item = list_next(inventario) )
+    {
+        total += item->peso;
+    }
+    return total;
+}
+
 
 
 
