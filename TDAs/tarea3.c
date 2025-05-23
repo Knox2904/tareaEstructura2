@@ -316,12 +316,77 @@ int peso_Inv(List *inventario)
 }
 
 
+void mover_jugador(Jugador* jugador, Map* mapaEscenarios) 
+{
+    // se hace esto para que el usuario eliga que direccion ir, podria haberse hecho una funcion aparte para mas comodidad
+    //pero se agrego aqui, es una variable char que es un arreglo con las direcciones para el usuario
+    char *nombresDir[4] = {"Arriba", "Abajo", "Izquierda", "Derecha"};
+    //variable para marcar las opciones disponibles para el usuario, si la posicion esta disponible se marca con 1, si no 0.
+    int opciones_validas[4] = {0, 0, 0, 0};
 
+    //variable para usar una flag
+    int hay_opciones = 0;
 
-void jugar(Map* mapaEscenarios , List* jugadores){
+    printf("Direcciones en las que se puede mover:\n");
+
+    //se comprueba si es que hay direcciones, si es que hay se hace esto
+    for (int i = 0; i < 4; i++) 
+    {
+        if (jugador->posicion->conexiones[i] != NULL) 
+        {
+            printf(" %d) %s (a Escenario ID: %s)\n", i, nombresDir[i], jugador->posicion->conexiones[i]);
+            opciones_validas[i] = 1;
+            hay_opciones = 1;
+        }
+    }
+    
+    
+    //opcion si es que no hay mas direcciones
+    if (!hay_opciones) 
+    {
+        puts("No hay direcciones disponibles para moverse.");
+        return;
+    }
+
+    //Ya que si hay direcciones ahora se ve como se va a mover.
+    int dir;
+    printf("Elige una direccion (numero): ");
+    scanf("%d", &dir);
+
+    if (dir < 0 || dir > 3 || !opciones_validas[dir]) 
+    {
+        puts("Direccion invalida.");
+        return;
+    }
+
+    //se saca hacia donde se movio el jugador y se busca en el mapa, despues se comprueba si el movimiento es valido.
+    int idDestino = atoi(jugador->posicion->conexiones[dir]);
+    MapPair* par = map_search(mapaEscenarios, &idDestino);
+    if (!par) 
+    {
+        puts("No existe escenario destino.");
+        return;
+    }
+
+    //si el movimiento fue valido se pasa al sig escenario.
+    Escenario* siguiente = (Escenario*)par->value;
+
+    jugador->posicion = siguiente;
+
+    int peso = peso_total_inventario(jugador->inventario);
+    int tiempo_usado = (int)ceil((peso + 1) / 10.0);
+    jugador->tiempo_restante -= tiempo_usado;
+
+    printf("Te has movido a: %s\n", jugador->posicion->nombre);
+    printf("Tiempo gastado: %d | Tiempo restante: %d\n", tiempo_usado, jugador->tiempo_restante);
+}
+
+void jugar(Map* mapaEscenarios , List* jugadores)
+{
 
     int tiempo = 10 ; // cambia la logica de esto a la formula que esta en el Notion
-    do{
+    do
+    {
         MostrarMapa(mapaEscenarios , jugadores) ; 
         mostrarEstadoJugador(mapaEscenarios , jugadores);//falta 
         acionesJugador(mapaEscenarios , jugadores);//falta  
