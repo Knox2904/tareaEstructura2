@@ -31,6 +31,8 @@ typedef struct {
     int idJugador ; 
     char *nombreJugador ;
     Escenario *posicion ; 
+    List *inventario ;        
+    int tiempo_restante ;     
 
 } Jugador  ;
 
@@ -87,8 +89,7 @@ void leer_escenarios(Map* mapaEscenarios) {
 
     escenaioAux->id = atoi(campos[0]) ; 
     escenaioAux->nombre = strdup(campos[1]) ; 
-    escenaioAux->descripcion = strdup(campos[2]); 
-
+    escenaioAux->descripcion = strdup(campos[2]);
 
     List* items = split_string(campos[3], ";");
 
@@ -173,6 +174,9 @@ void ConseguirNombres(Map* mapaEscenarios , List* jugadores){
         Jugador* jugadorTemp = malloc(sizeof(Jugador));
         jugadorTemp->idJugador = i;
         jugadorTemp->nombreJugador = strdup(nombre);
+        jugadorTemp->inventario = list_create();   // <-- INICIALIZACIÓN NUEVA, AGREGADA POR EL CAMBIO DE MOVER(Felipe)
+        jugadorTemp->tiempo_restante = 10;         // <-- INICIALIZACIÓN NUEVA, AGREGADA POR EL CAMBIO DE MOVER(Felipe)
+        //tiempo no sacado correctamente, esto es un place holder por ahora.
 
         MapPair* par2 = map_search(mapaEscenarios, &idInicial) ; 
         if (!par2) {
