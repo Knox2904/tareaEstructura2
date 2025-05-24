@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define N 4
 #define M 4
@@ -316,7 +317,7 @@ int peso_Inv(List *inventario)
 }
 
 
-void mover_jugador(Jugador* jugador, Map* mapaEscenarios) 
+int Player_Move(Jugador* jugador, Map* mapaEscenarios) 
 {
     // se hace esto para que el usuario eliga que direccion ir, podria haberse hecho una funcion aparte para mas comodidad
     //pero se agrego aqui, es una variable char que es un arreglo con las direcciones para el usuario
@@ -345,7 +346,7 @@ void mover_jugador(Jugador* jugador, Map* mapaEscenarios)
     if (!hay_opciones) 
     {
         puts("No hay direcciones disponibles para moverse.");
-        return;
+        return 0;
     }
 
     //Ya que si hay direcciones ahora se ve como se va a mover.
@@ -356,7 +357,7 @@ void mover_jugador(Jugador* jugador, Map* mapaEscenarios)
     if (dir < 0 || dir > 3 || !opciones_validas[dir]) 
     {
         puts("Direccion invalida.");
-        return;
+        return 0;
     }
 
     //se saca hacia donde se movio el jugador y se busca en el mapa, despues se comprueba si el movimiento es valido.
@@ -365,7 +366,7 @@ void mover_jugador(Jugador* jugador, Map* mapaEscenarios)
     if (!par) 
     {
         puts("No existe escenario destino.");
-        return;
+        return 0;
     }
 
     //si el movimiento fue valido se pasa al sig escenario.
@@ -373,12 +374,23 @@ void mover_jugador(Jugador* jugador, Map* mapaEscenarios)
 
     jugador->posicion = siguiente;
 
-    int peso = peso_total_inventario(jugador->inventario);
+    int peso = peso_Inv(jugador->inventario);
     int tiempo_usado = (int)ceil((peso + 1) / 10.0);
     jugador->tiempo_restante -= tiempo_usado;
 
     printf("Te has movido a: %s\n", jugador->posicion->nombre);
     printf("Tiempo gastado: %d | Tiempo restante: %d\n", tiempo_usado, jugador->tiempo_restante);
+
+    //si es que el jugador llega a la salida.
+    if (jugador->posicion->esFinal == 1) 
+    {
+        printf("¡Felicidades, %s! Has llegado a la salida y GANASTE el juego.\n", jugador->nombreJugador);
+        return 1;
+    }
+
+
+    else return 0;
+    
 }
 
 void jugar(Map* mapaEscenarios , List* jugadores)
@@ -388,7 +400,19 @@ void jugar(Map* mapaEscenarios , List* jugadores)
     do
     {
         MostrarMapa(mapaEscenarios , jugadores) ; 
-        mostrarEstadoJugador(mapaEscenarios , jugadores);//falta 
+        //se hace un ciclo para que se pueda mover cada jugador
+        int ganador = 0;
+        for (Jugador* jugador = list_first(jugadores); jugador != NULL; jugador = list_next(jugadores)) 
+        {
+           if (Player_Move(jugador, mapaEscenarios)) 
+           {
+            ganador = 1;
+            break;
+           }
+        }
+        
+        if (ganador) break; 
+        //mostrarEstadoJugador(mapaEscenarios , jugadores);//falta 
         acionesJugador(mapaEscenarios , jugadores);//falta  
         tiempo--;
     } while (tiempo != 0 );
